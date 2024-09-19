@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List with Assignment</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e0f2f1; /* Light teal background */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #00796b; /* Dark teal for heading */
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 20px;
+            background-color: #ffffff; /* White background for the main content */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slightly darker shadow */
+            box-sizing: border-box;
+        }
+        #taskInput, #personInput {
+            padding: 10px;
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            max-width: 100%;
+            margin-bottom: 10px;
+            border: 2px solid #00796b; /* Dark teal border */
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #00796b; /* Dark teal background */
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #004d40; /* Even darker teal on hover */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff; /* White background for table */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #004d40; /* Dark teal for header */
+            color: #ffffff;
+        }
+        tr:nth-child(even) {
+            background-color: #f5f5f5; /* Light grey for alternate rows */
+        }
+        tr:hover {
+            background-color: #e0f2f1; /* Light teal on hover */
+        }
+        .remove-btn {
+            cursor: pointer;
+            color: #f44336; /* Red color */
+            font-weight: bold;
+        }
+        .remove-btn:hover {
+            color: #d32f2f; /* Darker red on hover */
+        }
+        @media (max-width: 600px) {
+            #taskInput, #personInput {
+                width: calc(100% - 20px); /* Adjust for padding */
+            }
+            button {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <input type="text" id="taskInput" placeholder="Enter a task">
+        <input type="text" id="personInput" placeholder="Assign to (person)">
+        <button onclick="addTask()">Add Task</button>
+
+        <table id="taskTable">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Assigned To</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Task rows will be added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to add a task with assignment
+        function addTask() {
+            const taskInput = document.getElementById("taskInput").value.trim();
+            const personInput = document.getElementById("personInput").value.trim();
+
+            if (taskInput === "" || personInput === "") {
+                alert("Please enter both a task and a person.");
+                return;
+            }
+
+            // Create a new row for the table
+            const table = document.getElementById("taskTable").getElementsByTagName("tbody")[0];
+            const newRow = table.insertRow();
+
+            // Create task and person cells
+            const taskCell = newRow.insertCell(0);
+            taskCell.textContent = taskInput;
+
+            const personCell = newRow.insertCell(1);
+            personCell.textContent = personInput;
+
+            // Create a remove button
+            const actionCell = newRow.insertCell(2);
+            const removeBtn = document.createElement("span");
+            removeBtn.textContent = "Remove";
+            removeBtn.classList.add("remove-btn");
+            removeBtn.onclick = function() {
+                removeTask(newRow);
+            };
+            actionCell.appendChild(removeBtn);
+
+            // Clear input fields after adding
+            document.getElementById("taskInput").value = "";
+            document.getElementById("personInput").value = "";
+
+            // Save to local storage
+            saveTask(taskInput, personInput);
+        }
+
+        // Function to remove a task
+        function removeTask(row) {
+            const taskText = row.cells[0].textContent;
+            row.remove();
+
+            // Remove from local storage
+            removeTaskFromLocalStorage(taskText);
+        }
+
+        // Save task to local storage
+        function saveTask(task, person) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.push({ task, person });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        // Remove task from local storage
+        function removeTaskFromLocalStorage(task) {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks = tasks.filter(t => t.task !== task);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        }
+
+        // Load tasks from local storage on page load
+        window.onload = function() {
+            const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            const table = document.getElementById("taskTable").getElementsByTagName("tbody")[0];
+
+            tasks.forEach(({ task, person }) => {
+                const newRow = table.insertRow();
+
+                const taskCell = newRow.insertCell(0);
+                taskCell.textContent = task;
+
+                const personCell = newRow.insertCell(1);
+                personCell.textContent = person;
+
+                const actionCell = newRow.insertCell(2);
+                const removeBtn = document.createElement("span");
+                removeBtn.textContent = "Remove";
+                removeBtn.classList.add("remove-btn");
+                removeBtn.onclick = function() {
+                    removeTask(newRow);
+                };
+                actionCell.appendChild(removeBtn);
+            });
+        }
+    </script>
+</body>
+</html>g
